@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.br.auction.sec.util;
+package com.br.auction.sec.db.util;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.RequestScoped;
@@ -20,34 +20,18 @@ import jakarta.persistence.Persistence;
 @ApplicationScoped
 public class EntityManagerProducer {
 
-    private final EntityManagerFactory factory;
+    private EntityManagerFactory factory;
 
-    /**
-     * Construtor que inicializa a fábrica de EntityManager, 
-     * procurando pelo persistence.xml configurado no META-INF.
-     */
     public EntityManagerProducer() {
-        factory = Persistence.createEntityManagerFactory("pro-nutritionPU");
+        factory = Persistence.createEntityManagerFactory("auction-systemPU");
     }
 
-    /**
-     * Método responsável por criar uma instância de EntityManager.
-     * Esta instância é anotada com @RequestScoped para garantir
-     * que seja criada uma nova instância a cada requisição.
-     *
-     * @return Uma instância de EntityManager.
-     */
     @Produces
     @RequestScoped
     public EntityManager createEntityManager() {
         return factory.createEntityManager();
     }
 
-    /**
-     * Método responsável por fechar uma instância de EntityManager.
-     *
-     * @param manager A instância de EntityManager a ser fechada.
-     */
     public void closeEntityManager(@Disposes EntityManager manager) {
         manager.close();
     }

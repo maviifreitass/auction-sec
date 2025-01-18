@@ -5,9 +5,12 @@
 package com.br.auction.sec.server;
 
 import com.br.auction.sec.client.ClientAuctionPanel;
+import com.br.auction.sec.db.UserDB;
+import com.br.auction.sec.entity.User;
 import com.br.auction.sec.service.AuctionMonitoring;
 import com.br.auction.sec.service.FrameServerService;
 import com.br.auction.sec.service.MulticastService;
+import jakarta.inject.Inject;
 import java.awt.BorderLayout;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -147,6 +150,7 @@ public class ServerMainPanel extends javax.swing.JPanel {
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
         monitoring.startAuction();
+        
     }//GEN-LAST:event_jButton1MouseClicked
 
 

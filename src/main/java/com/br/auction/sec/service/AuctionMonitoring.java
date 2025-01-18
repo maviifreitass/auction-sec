@@ -4,8 +4,10 @@
  */
 package com.br.auction.sec.service;
 
+import com.br.auction.sec.db.ItemsDB;
+import com.br.auction.sec.entity.Items;
 import com.google.gson.JsonObject;
-import jakarta.inject.Inject;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,22 +22,28 @@ public class AuctionMonitoring {
 
     private static ScheduledExecutorService scheduler;
     private Integer remainingTime;
+    private ItemsDB itemsDB;
+    private List<Items> itemsList;
 
     public AuctionMonitoring(MulticastService multicastService) {
         this.multicastService = multicastService;
+        this.itemsDB = new ItemsDB();
+        itemsList = itemsDB.getItems();
     }
-    
-    public JsonObject returnCurrentItem(){
+
+    public JsonObject returnCurrentItem() {
         JsonObject json = new JsonObject();
-        json.addProperty("itemValue", "5000");
-        json.addProperty("itemName", "Macaco");
-        
+
+        Items item = itemsList.get(0);
+        json.addProperty("itemValue", item.getValue());
+        json.addProperty("itemName", item.getName());
+
         return json;
     }
 
     public void startAuction() {
         JsonObject json = new JsonObject();
-        remainingTime = 90;
+        remainingTime = 20;
         System.out.println("Iniciando scheduler.");
         multicastService.sendMessage(returnCurrentItem());
         scheduler = Executors.newScheduledThreadPool(1);
@@ -45,8 +53,35 @@ public class AuctionMonitoring {
                 System.out.println("Tempo restante: " + remainingTime + " segundos.");
                 json.addProperty("time", remainingTime.toString());
                 multicastService.sendMessage(json);
+            } else {
+                endAuction();
             }
         }, 1, 1, TimeUnit.SECONDS);
+    }
+
+    public void endAuction() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            System.out.println("[SHUTDOWN]");
+            scheduler.shutdown();
+        }
+
+        JsonObject json = new JsonObject();
+
+        itemsList.remove(0);
+        // findByRange das imagens
+        System.out.println(itemsList.toString());
+        if (!itemsList.isEmpty()) {
+
+            for (Items item : itemsList) { // Itere sobre seus objetos Picture
+                json.addProperty("itemValue", item.getValue());
+                json.addProperty("itemName", item.getName());
+                multicastService.sendMessage(json);
+                startAuction();
+                break;
+            }
+
+        }
+
     }
 
 }

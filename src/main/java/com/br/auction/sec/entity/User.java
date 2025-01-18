@@ -11,24 +11,27 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import java.util.Date;
 
 /**
  *
  * @author maria
  */
 @Entity
-@Table(name = "client")
-public class Client implements Serializable {
+@Table(name = "users")
+public class User implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    private String word;
+    @Column(name = "cpf")
+    private String cpf;
+
+    @Column(name = "public_key")
+    private String publicKey;
+
+    @Column(name = "private_key")
+    private String privateKey;
 
     public Long getId() {
         return id;
@@ -38,14 +41,30 @@ public class Client implements Serializable {
         this.id = id;
     }
 
-    public String getWord() {
-        return word;
+    public String getCpf() {
+        return cpf;
     }
 
-    public void setWord(String word) {
-        this.word = word;
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
     }
-    
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
+
     @Override
     public String toString() {
         return new com.google.gson.Gson().toJson(this);

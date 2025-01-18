@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.br.auction.sec.util;
+package com.br.auction.sec.db.util;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
@@ -30,7 +30,7 @@ public class PostgresWrapper {
      */
     public Boolean openPostgresConnection() {
         try {
-            String url = "jdbc:postgresql://localhost:5432/pro-nutrition";
+            String url = "jdbc:postgresql://localhost:5432/auction-system";
             connection = DriverManager.getConnection(url, "admin-nutrition", "admin");
         } catch (SQLRecoverableException ex) {
             Logger.getLogger(PostgresWrapper.class.getName()).log(Level.SEVERE, "Network connection error!", ex);
