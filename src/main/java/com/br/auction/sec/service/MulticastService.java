@@ -1,18 +1,27 @@
 package com.br.auction.sec.service;
-import com.br.auction.sec.server.MulticastPanel;
+
+import com.br.auction.sec.client.ClientAuctionPanel;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 
+@ApplicationScoped
 public class MulticastService implements Runnable {
+
     private String multicastGroup;
     private int port;
     private MulticastSocket socket;
     private InetAddress group;
-    private MulticastPanel panel;
+    private ClientAuctionPanel panel;
 
-    public MulticastService(String multicastGroup, int port, MulticastPanel panel) {
+    public MulticastService() {
+    }
+
+    public MulticastService(String multicastGroup, int port, ClientAuctionPanel panel) {
         this.multicastGroup = multicastGroup;
         this.port = port;
         this.panel = panel;
@@ -34,21 +43,27 @@ public class MulticastService implements Runnable {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 String receivedMessage = new String(packet.getData(), 0, packet.getLength());
-                panel.displayMessage("Recebido: " + receivedMessage);
+                
+                JsonObject jsonObject = JsonParser.parseString(receivedMessage).getAsJsonObject();
+                panel.displayMessage(jsonObject);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void sendMessage(String message) {
+    public void sendMessage(JsonObject json) {
         try {
-            byte[] buffer = message.getBytes();
+            // encrypt
+            // fazer encriptação apenas do value 
+            
+            byte[] buffer = json.toString().getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, port);
             socket.send(packet);
-            panel.displayMessage("Enviado: " + message);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+
 }

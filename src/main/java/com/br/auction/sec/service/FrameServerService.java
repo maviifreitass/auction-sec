@@ -1,10 +1,12 @@
 
 package com.br.auction.sec.service;
 
+import com.br.auction.sec.server.ServerRegisterPanel;
 import com.br.auction.sec.server.ServerMainPanel;
 import java.awt.BorderLayout;
 public class FrameServerService extends javax.swing.JFrame {
-    static ServerMainPanel TelaID;
+   public static ServerMainPanel TelaID;
+   public static ServerRegisterPanel configPanel;
     
     public FrameServerService() {
         initComponents();
