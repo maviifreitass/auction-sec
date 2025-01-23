@@ -4,9 +4,11 @@
  */
 package com.br.auction.sec.client;
 
+import com.br.auction.sec.entity.User;
 import com.br.auction.sec.service.AuctionMonitoring;
 import com.br.auction.sec.service.MulticastService;
 import com.google.gson.JsonObject;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -17,10 +19,28 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
     /**
      * Creates new form ClientPan
      */
-
     private AuctionMonitoring monitoring;
 
     private MulticastService multicastService;
+
+    private User user;
+
+    public ClientAuctionPanel(User user) {
+         initComponents();
+
+        multicastService = new MulticastService("230.0.0.0", 5000, this);
+        new Thread(multicastService).start();
+        monitoring = new AuctionMonitoring(multicastService);
+
+        if (monitoring != null) {
+            displayItems(monitoring.returnCurrentItem());
+        }
+        
+        this.user = user;
+        if (user != null) {
+            labelCurrentUser.setText("Seu ID é: "+user.getIdAuction());
+        }
+    }
 
     public ClientAuctionPanel() {
         initComponents();
@@ -28,26 +48,33 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
         multicastService = new MulticastService("230.0.0.0", 5000, this);
         new Thread(multicastService).start();
         monitoring = new AuctionMonitoring(multicastService);
-        
+
         if (monitoring != null) {
             displayItems(monitoring.returnCurrentItem());
         }
-        
+
     }
 
     public void displayItems(JsonObject json) {
         itemName.setText(json.get("itemName").getAsString());
         itemValue.setText(json.get("itemValue").getAsString());
-        itemImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/auctionT.png")));
+        itemImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/" + json.get("itemImage").getAsString())));
     }
 
     public void displayMessage(JsonObject json) {
         // decript        
-        
+
         if (json.has("itemValue")) {
+            labelUser.setText("Nenhum usuário realizou lance"); 
             displayItems(json);
         } else if (json.has("time")) {
             timeLabel.setText("Tempo restante: " + json.get("time").getAsString() + " segundos");
+        } else if (json.has("currentBid")) {
+            Double value = Double.valueOf(itemValue.getText());
+            itemValue.setText(String.valueOf(value + 1000));
+            labelUser.setText(json.get("currentUser").getAsString());
+        } else if (json.has("shutdown") && user != null) {
+            JOptionPane.showMessageDialog(null, "Vencedor deste item: " + labelUser.getText(), "Item finalizado", JOptionPane.INFORMATION_MESSAGE);
         }
 
     }
@@ -69,9 +96,12 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
         itemName = new javax.swing.JLabel();
         itemImage = new javax.swing.JLabel();
         itemValue = new javax.swing.JLabel();
-        jButton4 = new javax.swing.JButton();
-        labelUser = new javax.swing.JLabel();
+        giveBid = new javax.swing.JButton();
+        labelCurrentUser = new javax.swing.JLabel();
         timeLabel = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        labelUser = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(255, 255, 255));
         setEnabled(false);
@@ -104,29 +134,36 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
         itemValue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         itemValue.setText("[Valor do Item]");
 
-        jButton4.setFont(new java.awt.Font("Montserrat SemiBold", 0, 18)); // NOI18N
-        jButton4.setText("Dar Lance");
-        jButton4.addMouseListener(new java.awt.event.MouseAdapter() {
+        giveBid.setFont(new java.awt.Font("Montserrat SemiBold", 0, 18)); // NOI18N
+        giveBid.setText("Dar Lance");
+        giveBid.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton4MouseClicked(evt);
+                giveBidMouseClicked(evt);
             }
         });
 
-        labelUser.setFont(new java.awt.Font("Montserrat SemiBold", 0, 18)); // NOI18N
-        labelUser.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        labelUser.setText("[Usuário que Fez Lance]");
+        labelCurrentUser.setFont(new java.awt.Font("Montserrat SemiBold", 0, 18)); // NOI18N
+        labelCurrentUser.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelCurrentUser.setText("[Id do Usuário]");
 
         timeLabel.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
         timeLabel.setText("Tempo Restante:");
+
+        jLabel1.setFont(new java.awt.Font("Montserrat SemiBold", 0, 14)); // NOI18N
+        jLabel1.setText("Valor minimo entre lances: R$1000");
+
+        labelUser.setFont(new java.awt.Font("Montserrat SemiBold", 0, 18)); // NOI18N
+        labelUser.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelUser.setText("Nenhum usuário realizou lance");
+
+        jLabel4.setFont(new java.awt.Font("Montserrat SemiBold", 1, 14)); // NOI18N
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel4.setText("Lance atual feito por:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(167, 167, 167)
-                .addComponent(itemImage, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(186, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -142,16 +179,34 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
                         .addGap(98, 98, 98)
                         .addComponent(timeLabel))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(212, 212, 212)
-                        .addComponent(jButton4))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(143, 143, 143)
+                        .addGap(144, 144, 144)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(itemName, javax.swing.GroupLayout.PREFERRED_SIZE, 251, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(itemValue, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(labelUser, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addComponent(itemValue, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(167, 167, 167)
+                        .addComponent(itemImage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(116, 116, 116)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(98, 98, 98)
+                                .addComponent(giveBid))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(29, 29, 29)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel1)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(8, 8, 8)
+                                        .addComponent(labelCurrentUser, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(labelUser, javax.swing.GroupLayout.PREFERRED_SIZE, 326, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(192, 192, 192)
+                        .addComponent(jLabel4)))
+                .addContainerGap(118, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -162,15 +217,21 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
                     .addComponent(timeLabel))
                 .addGap(18, 18, 18)
                 .addComponent(itemName)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(itemImage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(itemImage, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(itemValue)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel4)
+                .addGap(2, 2, 2)
                 .addComponent(labelUser)
+                .addGap(5, 5, 5)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(giveBid)
                 .addGap(18, 18, 18)
-                .addComponent(jButton4)
-                .addGap(270, 270, 270)
+                .addComponent(labelCurrentUser)
+                .addGap(202, 202, 202)
                 .addComponent(jLabel2)
                 .addGap(35, 35, 35)
                 .addComponent(jFormattedTextField1)
@@ -186,21 +247,28 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void jButton4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton4MouseClicked
-
-    }//GEN-LAST:event_jButton4MouseClicked
+    private void giveBidMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_giveBidMouseClicked
+        JsonObject json = new JsonObject();
+        json.addProperty("currentBid", Boolean.TRUE);
+        json.addProperty("currentUser", user.getIdAuction()); 
+        // enviar nome do usuario tb
+        multicastService.sendMessage(json);
+    }//GEN-LAST:event_giveBidMouseClicked
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton giveBid;
     private javax.swing.JLabel itemImage;
     private javax.swing.JLabel itemName;
     private javax.swing.JLabel itemValue;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton4;
     private javax.swing.JFormattedTextField jFormattedTextField1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPasswordField jPasswordField1;
+    private javax.swing.JLabel labelCurrentUser;
     private javax.swing.JLabel labelUser;
     private javax.swing.JLabel timeLabel;
     // End of variables declaration//GEN-END:variables

@@ -53,10 +53,7 @@ public class MulticastService implements Runnable {
     }
 
     public void sendMessage(JsonObject json) {
-        try {
-            // encrypt
-            // fazer encriptação apenas do value 
-            
+        try {            
             byte[] buffer = json.toString().getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, port);
             socket.send(packet);

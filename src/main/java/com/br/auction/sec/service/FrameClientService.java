@@ -3,10 +3,12 @@ package com.br.auction.sec.service;
 
 import com.br.auction.sec.client.ClientAuctionPanel;
 import com.br.auction.sec.client.ClientMainPanel;
+import com.br.auction.sec.client.ClientRegisterPanel;
 import java.awt.BorderLayout;
 public class FrameClientService extends javax.swing.JFrame {
     public static ClientMainPanel TelaID;
     public static ClientAuctionPanel auctionPanel;
+    public static ClientRegisterPanel registerPanel;
     
     public FrameClientService() {
         initComponents();
@@ -25,11 +27,11 @@ public class FrameClientService extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGap(0, 608, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGap(0, 474, Short.MAX_VALUE)
         );
 
         pack();

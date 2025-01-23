@@ -4,9 +4,22 @@
  */
 package com.br.auction.sec.client;
 
+import com.br.auction.sec.db.UserDB;
+import com.br.auction.sec.entity.User;
 import com.br.auction.sec.service.FrameClientService;
-import com.br.auction.sec.service.MulticastService;
+import com.br.auction.sec.util.CryptoUtils;
+import com.br.auction.sec.util.KeyUtils;
 import java.awt.BorderLayout;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -18,7 +31,7 @@ public class ClientMainPanel extends javax.swing.JPanel {
 
     /**
      * Creates new form ClientPan
-     */    
+     */
     public ClientMainPanel() {
         initComponents();
     }
@@ -39,7 +52,7 @@ public class ClientMainPanel extends javax.swing.JPanel {
         jButton2 = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jPasswordField2 = new javax.swing.JPasswordField();
-        jFormattedTextField2 = new javax.swing.JFormattedTextField();
+        cpfLabel = new javax.swing.JFormattedTextField();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jButton3 = new javax.swing.JButton();
@@ -69,6 +82,11 @@ public class ClientMainPanel extends javax.swing.JPanel {
         jButton2.setText("Cadastrar-se");
         jButton2.setBorder(null);
         jButton2.setContentAreaFilled(false);
+        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton2MouseClicked(evt);
+            }
+        });
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -77,8 +95,6 @@ public class ClientMainPanel extends javax.swing.JPanel {
 
         jPasswordField2.setForeground(new java.awt.Color(231, 223, 223));
         jPasswordField2.setText("jPasswordField2");
-
-        jFormattedTextField2.setText("jFormattedTextField2");
 
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/auctionT.png"))); // NOI18N
 
@@ -120,7 +136,7 @@ public class ClientMainPanel extends javax.swing.JPanel {
                         .addGap(21, 21, 21)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jPasswordField2)
-                            .addComponent(jFormattedTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addComponent(cpfLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)))))
             .addGroup(layout.createSequentialGroup()
                 .addGap(122, 122, 122)
                 .addComponent(jLabel4))
@@ -136,7 +152,7 @@ public class ClientMainPanel extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel4)
                 .addGap(14, 14, 14)
-                .addComponent(jFormattedTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cpfLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(12, 12, 12)
                 .addComponent(jPasswordField2, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -170,21 +186,97 @@ public class ClientMainPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseClicked
-      
-        FrameClientService.auctionPanel = new ClientAuctionPanel();
+        try {
+            UserDB userDB = new UserDB();
+            User user = new User();
+
+            user = userDB.findByCpf(cpfLabel.getText());
+            PublicKey publicKey = KeyUtils.decodePublicKey(user.getPublicKey());
+            PrivateKey privateKey = KeyUtils.decodePrivateKey(user.getPrivateKey());
+            String signature = CryptoUtils.signMessage("Solicitação recebida", privateKey);
+            boolean isValid = verifySignature("Solicitação recebida", signature, publicKey);
+
+            if (isValid) {
+                System.out.println("A assinatura é válida. O usuário pode participar do leilão.");
+            } else {
+                System.out.println("A assinatura não é válida. O usuário não pode participar.");
+            }
+
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+            keyGenerator.init(256); // Tamanho da chave simétrica
+            SecretKey secretKey = keyGenerator.generateKey();
+            String encryptedKey = this.encryptSymmetricKey(secretKey, publicKey);
+            System.out.println("Encrypted Symmetric Key: " + encryptedKey);
+
+            secretKey = this.decryptSymmetricKey(encryptedKey, privateKey);
+
+            // Agora o cliente pode usar a chave simétrica para a comunicação segura
+            System.out.println("Decrypted Symmetric Key: " + secretKey);
+
+            CryptoUtils crypto = new CryptoUtils();
+
+            user.setIdAuction(crypto.generateRandomId());
+            FrameClientService.auctionPanel = new ClientAuctionPanel(user);
+            JFrame janela = (JFrame) SwingUtilities.getWindowAncestor(this);
+            janela.getContentPane().remove(FrameClientService.TelaID);
+            janela.add(FrameClientService.auctionPanel, BorderLayout.CENTER);
+            janela.setSize(800, 600);
+            janela.pack();
+        } catch (Exception ex) {
+            Logger.getLogger(ClientMainPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton3MouseClicked
+    public static boolean verifySignature(String data, String signatureBase64, PublicKey publicKey) throws Exception {
+        // Decodificando a assinatura em Base64
+        byte[] signatureBytes = Base64.getDecoder().decode(signatureBase64);
+
+        // Criando um objeto de verificação de assinatura
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initVerify(publicKey);
+
+        // Atualizando a verificação com os dados
+        signature.update(data.getBytes());
+
+        // Verificando a assinatura
+        return signature.verify(signatureBytes);
+    }
+
+    public String encryptSymmetricKey(SecretKey secretKey, PublicKey publicKey) throws Exception {
+        // Criptografar a chave simétrica com a chave pública do cliente
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        byte[] encryptedKey = cipher.doFinal(secretKey.getEncoded());
+        return Base64.getEncoder().encodeToString(encryptedKey); // Codifica a chave criptografada em Base64 para transmissão
+    }
+
+    public SecretKey decryptSymmetricKey(String encryptedKey, PrivateKey privateKey) throws Exception {
+        // Converter a chave simétrica criptografada de Base64 para bytes
+        byte[] encryptedKeyBytes = Base64.getDecoder().decode(encryptedKey);
+
+        // Descriptografar a chave simétrica com a chave privada do cliente
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] decryptedKey = cipher.doFinal(encryptedKeyBytes);
+
+        // Reconstruir a chave simétrica (AES) a partir dos bytes descriptografados
+        return new SecretKeySpec(decryptedKey, 0, decryptedKey.length, "AES");
+    }
+
+    private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
+        FrameClientService.registerPanel = new ClientRegisterPanel();
         JFrame janela = (JFrame) SwingUtilities.getWindowAncestor(this);
         janela.getContentPane().remove(FrameClientService.TelaID);
-        janela.add(FrameClientService.auctionPanel, BorderLayout.CENTER);
+        janela.add(FrameClientService.registerPanel, BorderLayout.CENTER);
         janela.pack();
-    }//GEN-LAST:event_jButton3MouseClicked
+    }//GEN-LAST:event_jButton2MouseClicked
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JFormattedTextField cpfLabel;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JFormattedTextField jFormattedTextField1;
-    private javax.swing.JFormattedTextField jFormattedTextField2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

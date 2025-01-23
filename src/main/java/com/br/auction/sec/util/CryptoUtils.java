@@ -1,13 +1,14 @@
 package com.br.auction.sec.util;
+
 import javax.crypto.Cipher;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.util.Base64;
 
 public class CryptoUtils {
 
-    // Criptografa a mensagem com a chave pública do cliente
     public static String encryptWithPublicKey(String message, PublicKey publicKey) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
@@ -15,7 +16,6 @@ public class CryptoUtils {
         return Base64.getEncoder().encodeToString(encryptedBytes);
     }
 
-    // Gera uma assinatura da mensagem com a chave privada do servidor
     public static String signMessage(String message, PrivateKey privateKey) throws Exception {
         Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initSign(privateKey);
@@ -23,4 +23,20 @@ public class CryptoUtils {
         byte[] signedBytes = signature.sign();
         return Base64.getEncoder().encodeToString(signedBytes);
     }
+
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int ID_LENGTH = 12;
+
+    public String generateRandomId() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder id = new StringBuilder(ID_LENGTH);
+
+        for (int i = 0; i < ID_LENGTH; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            id.append(CHARACTERS.charAt(index));
+        }
+
+        return id.toString();
+    }
+    
 }

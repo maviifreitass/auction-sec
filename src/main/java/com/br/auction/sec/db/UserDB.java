@@ -17,6 +17,7 @@ import jakarta.persistence.criteria.Root;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -102,6 +103,38 @@ public class UserDB implements Serializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public User findByCpf(String cpf) {
+        String sql = "SELECT id, cpf, public_key, private_key FROM users where cpf = '" + cpf + "' ";
+        User user = new User();
+
+        PostgresWrapper pw = new PostgresWrapper();
+        pw.openPostgresConnection();
+
+        try {
+            try ( Connection connection = pw.getConnection()) {
+                try ( PreparedStatement statement = connection.prepareStatement(sql)) {
+                    try ( ResultSet resultSet = statement.executeQuery()) {
+                        while (resultSet.next()) {
+                            user.setId(resultSet.getLong("id"));
+                            user.setCpf(resultSet.getString("cpf"));
+                            user.setPublicKey(resultSet.getString("public_key"));
+                            user.setPrivateKey(resultSet.getString("private_key"));
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } finally {
+                    pw.closeConnection();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return user;
     }
 
 }

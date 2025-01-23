@@ -37,6 +37,7 @@ public class AuctionMonitoring {
         Items item = itemsList.get(0);
         json.addProperty("itemValue", item.getValue());
         json.addProperty("itemName", item.getName());
+        json.addProperty("itemImage", item.getImage());
 
         return json;
     }
@@ -60,21 +61,23 @@ public class AuctionMonitoring {
     }
 
     public void endAuction() {
+        JsonObject json = new JsonObject();
         if (scheduler != null && !scheduler.isShutdown()) {
-            System.out.println("[SHUTDOWN]");
+            json.addProperty("shutdown", Boolean.TRUE);
+            multicastService.sendMessage(json);
             scheduler.shutdown();
+
         }
 
-        JsonObject json = new JsonObject();
-
-        itemsList.remove(0);
+        this.itemsList.remove(0);
         // findByRange das imagens
         System.out.println(itemsList.toString());
         if (!itemsList.isEmpty()) {
 
-            for (Items item : itemsList) { // Itere sobre seus objetos Picture
+            for (Items item : itemsList) {
                 json.addProperty("itemValue", item.getValue());
                 json.addProperty("itemName", item.getName());
+                json.addProperty("itemImage", item.getImage());
                 multicastService.sendMessage(json);
                 startAuction();
                 break;

@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
  *
@@ -32,6 +33,9 @@ public class User implements Serializable {
 
     @Column(name = "private_key")
     private String privateKey;
+
+    @Transient
+    private String idAuction;
 
     public Long getId() {
         return id;
@@ -63,6 +67,14 @@ public class User implements Serializable {
 
     public void setPrivateKey(String privateKey) {
         this.privateKey = privateKey;
+    }
+
+    public String getIdAuction() {
+        return idAuction;
+    }
+
+    public void setIdAuction(String idAuction) {
+        this.idAuction = idAuction;
     }
 
     @Override
