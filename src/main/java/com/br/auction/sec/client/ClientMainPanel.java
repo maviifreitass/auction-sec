@@ -7,6 +7,7 @@ package com.br.auction.sec.client;
 import com.br.auction.sec.db.UserDB;
 import com.br.auction.sec.entity.User;
 import com.br.auction.sec.service.FrameClientService;
+import com.br.auction.sec.service.UnicastClient;
 import com.br.auction.sec.util.CryptoUtils;
 import com.br.auction.sec.util.KeyUtils;
 import java.awt.BorderLayout;
@@ -49,13 +50,13 @@ public class ClientMainPanel extends javax.swing.JPanel {
         jFormattedTextField1 = new javax.swing.JFormattedTextField();
         jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
+        cadastrarBtn = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
-        jPasswordField2 = new javax.swing.JPasswordField();
         cpfLabel = new javax.swing.JFormattedTextField();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
+        entrarBtn = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(255, 255, 255));
         setEnabled(false);
@@ -78,40 +79,40 @@ public class ClientMainPanel extends javax.swing.JPanel {
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Ainda não possui cadastro?");
 
-        jButton2.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
-        jButton2.setText("Cadastrar-se");
-        jButton2.setBorder(null);
-        jButton2.setContentAreaFilled(false);
-        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+        cadastrarBtn.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
+        cadastrarBtn.setText("Cadastrar-se");
+        cadastrarBtn.setBorder(null);
+        cadastrarBtn.setContentAreaFilled(false);
+        cadastrarBtn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton2MouseClicked(evt);
+                cadastrarBtnMouseClicked(evt);
             }
         });
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        cadastrarBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                cadastrarBtnActionPerformed(evt);
             }
         });
-
-        jPasswordField2.setForeground(new java.awt.Color(231, 223, 223));
-        jPasswordField2.setText("jPasswordField2");
 
         jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/auctionT.png"))); // NOI18N
 
         jLabel4.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
         jLabel4.setText("Seja bem-vindo!");
 
-        jButton3.setText("Entrar");
-        jButton3.addMouseListener(new java.awt.event.MouseAdapter() {
+        entrarBtn.setText("Entrar");
+        entrarBtn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton3MouseClicked(evt);
+                entrarBtnMouseClicked(evt);
             }
         });
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        entrarBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                entrarBtnActionPerformed(evt);
             }
         });
+
+        jLabel5.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
+        jLabel5.setText("Digite seu CPF");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -130,19 +131,19 @@ public class ClientMainPanel extends javax.swing.JPanel {
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(64, 64, 64)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel3)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(21, 21, 21)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPasswordField2)
-                            .addComponent(cpfLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(122, 122, 122)
-                .addComponent(jLabel4))
+                        .addComponent(cadastrarBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel3)))
             .addGroup(layout.createSequentialGroup()
                 .addGap(115, 115, 115)
-                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(entrarBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(90, 90, 90)
+                .addComponent(cpfLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(122, 122, 122)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel4)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -151,16 +152,16 @@ public class ClientMainPanel extends javax.swing.JPanel {
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel4)
-                .addGap(14, 14, 14)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel5)
+                .addGap(8, 8, 8)
                 .addComponent(cpfLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(12, 12, 12)
-                .addComponent(jPasswordField2, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton3)
+                .addGap(28, 28, 28)
+                .addComponent(entrarBtn)
                 .addGap(18, 18, 18)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton2)
+                .addComponent(cadastrarBtn)
                 .addGap(366, 366, 366)
                 .addComponent(jLabel2)
                 .addGap(35, 35, 35)
@@ -177,45 +178,30 @@ public class ClientMainPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void cadastrarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cadastrarBtnActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_cadastrarBtnActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void entrarBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_entrarBtnActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_entrarBtnActionPerformed
 
-    private void jButton3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton3MouseClicked
+    private void entrarBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_entrarBtnMouseClicked
         try {
             UserDB userDB = new UserDB();
             User user = new User();
+            user = userDB.findByCpf(cpfLabel.getText(), Boolean.FALSE);
 
-            user = userDB.findByCpf(cpfLabel.getText());
-            PublicKey publicKey = KeyUtils.decodePublicKey(user.getPublicKey());
+            String encryptedKey = UnicastClient.sendRequest(cpfLabel.getText());
             PrivateKey privateKey = KeyUtils.decodePrivateKey(user.getPrivateKey());
-            String signature = CryptoUtils.signMessage("Solicitação recebida", privateKey);
-            boolean isValid = verifySignature("Solicitação recebida", signature, publicKey);
-
-            if (isValid) {
-                System.out.println("A assinatura é válida. O usuário pode participar do leilão.");
-            } else {
-                System.out.println("A assinatura não é válida. O usuário não pode participar.");
-            }
-
-            KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-            keyGenerator.init(256); // Tamanho da chave simétrica
-            SecretKey secretKey = keyGenerator.generateKey();
-            String encryptedKey = this.encryptSymmetricKey(secretKey, publicKey);
-            System.out.println("Encrypted Symmetric Key: " + encryptedKey);
-
-            secretKey = this.decryptSymmetricKey(encryptedKey, privateKey);
-
-            // Agora o cliente pode usar a chave simétrica para a comunicação segura
-            System.out.println("Decrypted Symmetric Key: " + secretKey);
-
+            SecretKey secretKey = this.decryptSymmetricKey(encryptedKey, privateKey);
+            user.setSimetricKey(secretKey);
+            
+            System.out.println("<<<<CHAVE SIMETRICA>>>>  " + secretKey);
+            
             CryptoUtils crypto = new CryptoUtils();
-
             user.setIdAuction(crypto.generateRandomId());
+            
             FrameClientService.auctionPanel = new ClientAuctionPanel(user);
             JFrame janela = (JFrame) SwingUtilities.getWindowAncestor(this);
             janela.getContentPane().remove(FrameClientService.TelaID);
@@ -225,29 +211,7 @@ public class ClientMainPanel extends javax.swing.JPanel {
         } catch (Exception ex) {
             Logger.getLogger(ClientMainPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jButton3MouseClicked
-    public static boolean verifySignature(String data, String signatureBase64, PublicKey publicKey) throws Exception {
-        // Decodificando a assinatura em Base64
-        byte[] signatureBytes = Base64.getDecoder().decode(signatureBase64);
-
-        // Criando um objeto de verificação de assinatura
-        Signature signature = Signature.getInstance("SHA256withRSA");
-        signature.initVerify(publicKey);
-
-        // Atualizando a verificação com os dados
-        signature.update(data.getBytes());
-
-        // Verificando a assinatura
-        return signature.verify(signatureBytes);
-    }
-
-    public String encryptSymmetricKey(SecretKey secretKey, PublicKey publicKey) throws Exception {
-        // Criptografar a chave simétrica com a chave pública do cliente
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        byte[] encryptedKey = cipher.doFinal(secretKey.getEncoded());
-        return Base64.getEncoder().encodeToString(encryptedKey); // Codifica a chave criptografada em Base64 para transmissão
-    }
+    }//GEN-LAST:event_entrarBtnMouseClicked
 
     public SecretKey decryptSymmetricKey(String encryptedKey, PrivateKey privateKey) throws Exception {
         // Converter a chave simétrica criptografada de Base64 para bytes
@@ -262,26 +226,26 @@ public class ClientMainPanel extends javax.swing.JPanel {
         return new SecretKeySpec(decryptedKey, 0, decryptedKey.length, "AES");
     }
 
-    private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
+    private void cadastrarBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cadastrarBtnMouseClicked
         FrameClientService.registerPanel = new ClientRegisterPanel();
         JFrame janela = (JFrame) SwingUtilities.getWindowAncestor(this);
         janela.getContentPane().remove(FrameClientService.TelaID);
         janela.add(FrameClientService.registerPanel, BorderLayout.CENTER);
         janela.pack();
-    }//GEN-LAST:event_jButton2MouseClicked
+    }//GEN-LAST:event_cadastrarBtnMouseClicked
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton cadastrarBtn;
     private javax.swing.JFormattedTextField cpfLabel;
+    private javax.swing.JButton entrarBtn;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JFormattedTextField jFormattedTextField1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JPasswordField jPasswordField1;
-    private javax.swing.JPasswordField jPasswordField2;
     // End of variables declaration//GEN-END:variables
 }

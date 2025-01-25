@@ -10,6 +10,7 @@ import com.br.auction.sec.util.KeyUtils;
 import java.security.KeyPair;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -41,6 +42,7 @@ public class ClientRegisterPanel extends javax.swing.JPanel {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         registerBtn = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(255, 255, 255));
         setEnabled(false);
@@ -59,7 +61,6 @@ public class ClientRegisterPanel extends javax.swing.JPanel {
             }
         });
 
-        cpfForm.setText("jFormattedTextField2");
         cpfForm.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cpfFormActionPerformed(evt);
@@ -83,6 +84,9 @@ public class ClientRegisterPanel extends javax.swing.JPanel {
             }
         });
 
+        jLabel1.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
+        jLabel1.setText("Por favor, digite seu cpf");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -101,22 +105,28 @@ public class ClientRegisterPanel extends javax.swing.JPanel {
                 .addGap(115, 115, 115)
                 .addComponent(registerBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(layout.createSequentialGroup()
-                .addGap(109, 109, 109)
-                .addComponent(jLabel4))
-            .addGroup(layout.createSequentialGroup()
                 .addGap(88, 88, 88)
                 .addComponent(cpfForm, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(97, 97, 97)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jLabel4))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(63, 63, 63)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(2, 2, 2)
+                .addGap(1, 1, 1)
                 .addComponent(jLabel4)
-                .addGap(26, 26, 26)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(cpfForm, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(47, 47, 47)
+                .addGap(28, 28, 28)
                 .addComponent(registerBtn)
                 .addGap(420, 420, 420)
                 .addComponent(jLabel2)
@@ -150,7 +160,9 @@ public class ClientRegisterPanel extends javax.swing.JPanel {
             String privateKeyBase64 = KeyUtils.keyToBase64(keyPair.getPrivate());
             user.setPrivateKey(privateKeyBase64);
             user.setPublicKey(publicKeyBase64);
+            
             userDB.createUser(user);
+            JOptionPane.showMessageDialog(null, "Cliente cadastrado com sucesso", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             Logger.getLogger(ClientRegisterPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -165,6 +177,7 @@ public class ClientRegisterPanel extends javax.swing.JPanel {
     private javax.swing.JFormattedTextField cpfForm;
     private javax.swing.JButton jButton1;
     private javax.swing.JFormattedTextField jFormattedTextField1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

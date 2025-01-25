@@ -12,6 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import java.security.PrivateKey;
+import javax.crypto.SecretKey;
 
 /**
  *
@@ -31,11 +33,14 @@ public class User implements Serializable {
     @Column(name = "public_key")
     private String publicKey;
 
-    @Column(name = "private_key")
+    @Transient
     private String privateKey;
 
     @Transient
     private String idAuction;
+
+    @Transient
+    private SecretKey simetricKey;
 
     public Long getId() {
         return id;
@@ -75,6 +80,14 @@ public class User implements Serializable {
 
     public void setIdAuction(String idAuction) {
         this.idAuction = idAuction;
+    }
+
+    public SecretKey getSimetricKey() {
+        return simetricKey;
+    }
+
+    public void setSimetricKey(SecretKey simetricKey) {
+        this.simetricKey = simetricKey;
     }
 
     @Override

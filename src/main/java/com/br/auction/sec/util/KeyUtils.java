@@ -4,13 +4,22 @@ import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 public class KeyUtils {
+
+    public static SecretKey generateSecret() throws NoSuchAlgorithmException {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(256); // Tamanho da chave simétrica
+        return keyGenerator.generateKey();
+    }
 
     public static KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -22,7 +31,6 @@ public class KeyUtils {
     public static String keyToBase64(java.security.Key key) {
         return Base64.getEncoder().encodeToString(key.getEncoded());
     }
-
 
     public static String encodeKey(Key key) {
         return Base64.getEncoder().encodeToString(key.getEncoded());

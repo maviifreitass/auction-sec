@@ -1,11 +1,14 @@
 package com.br.auction.sec.util;
 
+import java.io.File;
+import java.io.IOException;
 import javax.crypto.Cipher;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.util.Base64;
+import java.util.Scanner;
 
 public class CryptoUtils {
 
@@ -38,5 +41,6 @@ public class CryptoUtils {
 
         return id.toString();
     }
-    
+
+
 }

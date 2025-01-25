@@ -5,6 +5,7 @@
 package com.br.auction.sec.db;
 
 import com.br.auction.sec.db.util.PostgresWrapper;
+import com.br.auction.sec.db.util.PostgresWrapperClient;
 import com.br.auction.sec.entity.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -80,7 +81,7 @@ public class UserDB implements Serializable {
     }
 
     public void createUser(User user) {
-        String sql = "INSERT INTO users (cpf, public_key, private_key) VALUES (?, ?, ?);";
+        String sql = "INSERT INTO users (cpf, public_key) VALUES (?, ?);";
 
         PostgresWrapper pw = new PostgresWrapper();
         pw.openPostgresConnection();
@@ -90,7 +91,64 @@ public class UserDB implements Serializable {
                 try ( PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setString(1, user.getCpf());
                     statement.setString(2, user.getPublicKey());
-                    statement.setString(3, user.getPrivateKey());
+
+                    // Executando o comando SQL
+                    statement.executeUpdate();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                pw.closeConnection();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        this.createUserPrivacy(user);
+    }
+
+    public String findByCpfSystem(String cpf) {
+        String sql = "SELECT public_key FROM users where cpf = '" + cpf + "' ";
+
+        PostgresWrapper pw = new PostgresWrapper();
+        pw.openPostgresConnection();
+
+        String publicKey = null;
+
+        try {
+            try ( Connection connection = pw.getConnection()) {
+                try ( PreparedStatement statement = connection.prepareStatement(sql)) {
+                    try ( ResultSet resultSet = statement.executeQuery()) {
+                        while (resultSet.next()) {
+                            publicKey = (resultSet.getString("public_key"));
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } finally {
+                    pw.closeConnection();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return publicKey;
+    }
+
+    // --------------------- Client Database --------------------------
+    public void createUserPrivacy(User user) {
+        String sql = "INSERT INTO users_privacy (cpf, private_key) VALUES (?, ?);";
+
+        PostgresWrapperClient pw = new PostgresWrapperClient();
+        pw.openPostgresConnection();
+
+        try {
+            try ( Connection connection = pw.getConnection()) {
+                try ( PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setString(1, user.getCpf());
+                    statement.setString(2, user.getPrivateKey());
 
                     // Executando o comando SQL
                     statement.executeUpdate();
@@ -105,11 +163,11 @@ public class UserDB implements Serializable {
         }
     }
 
-    public User findByCpf(String cpf) {
-        String sql = "SELECT id, cpf, public_key, private_key FROM users where cpf = '" + cpf + "' ";
+    public User findByCpf(String cpf, Boolean isServer) {
+        String sql = "SELECT id, cpf, private_key FROM users_privacy where cpf = '" + cpf + "' ";
         User user = new User();
 
-        PostgresWrapper pw = new PostgresWrapper();
+        PostgresWrapperClient pw = new PostgresWrapperClient();
         pw.openPostgresConnection();
 
         try {
@@ -119,7 +177,6 @@ public class UserDB implements Serializable {
                         while (resultSet.next()) {
                             user.setId(resultSet.getLong("id"));
                             user.setCpf(resultSet.getString("cpf"));
-                            user.setPublicKey(resultSet.getString("public_key"));
                             user.setPrivateKey(resultSet.getString("private_key"));
                         }
                     }
@@ -137,4 +194,5 @@ public class UserDB implements Serializable {
         return user;
     }
 
+    // -----------------------------------------------------------------------------------
 }
