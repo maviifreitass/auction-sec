@@ -4,7 +4,7 @@ Projeto desenvolvido para implementar uma plataforma de leilão virtual segura e
 O sistema segue uma arquitetura cliente-servidor baseada em comunicação multicast e emprega um esquema de criptografia híbrida para garantir a privacidade dos dados e a autenticidade dos usuários.
 
 ## Funcionalidades
--Leilões em Tempo Real:
+- Leilões em Tempo Real:
 - Lances são processados e transmitidos em tempo real utilizando comunicação multicast.
 
 ## Criptografia Híbrida:
