@@ -70,7 +70,6 @@ public class AuctionMonitoring {
         }
 
         this.itemsList.remove(0);
-        // findByRange das imagens
         System.out.println(itemsList.toString());
         if (!itemsList.isEmpty()) {
 

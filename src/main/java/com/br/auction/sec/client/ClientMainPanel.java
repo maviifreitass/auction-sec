@@ -6,23 +6,22 @@ package com.br.auction.sec.client;
 
 import com.br.auction.sec.db.UserDB;
 import com.br.auction.sec.entity.User;
+import com.br.auction.sec.entity.dao.Multicast;
 import com.br.auction.sec.service.FrameClientService;
 import com.br.auction.sec.service.UnicastClient;
 import com.br.auction.sec.util.CryptoUtils;
 import com.br.auction.sec.util.KeyUtils;
 import java.awt.BorderLayout;
 import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import org.json.JSONObject;
 
 /**
  *
@@ -193,16 +192,26 @@ public class ClientMainPanel extends javax.swing.JPanel {
             user = userDB.findByCpf(cpfLabel.getText(), Boolean.FALSE);
 
             String encryptedKey = UnicastClient.sendRequest(cpfLabel.getText());
+            JSONObject receivedMsg = new JSONObject(encryptedKey);
+
             PrivateKey privateKey = KeyUtils.decodePrivateKey(user.getPrivateKey());
-            SecretKey secretKey = this.decryptSymmetricKey(encryptedKey, privateKey);
+            byte[] decodedKey = decryptMessageAssim(receivedMsg.get("Key").toString(), privateKey);
+            SecretKey secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
             user.setSimetricKey(secretKey);
-            
-            System.out.println("<<<<CHAVE SIMETRICA>>>>  " + secretKey);
-            
+            System.out.println("SECRET KEY: " + secretKey.hashCode());
+
+            String decryptedPort = new String(decryptMessageAssim(receivedMsg.get("Port").toString(), privateKey));
+            String decryptedGroup = new String(decryptMessageAssim(receivedMsg.get("Group").toString(), privateKey));
+
+            int port = Integer.parseInt(decryptedPort);
+            String group = decryptedGroup;
+
+            Multicast multicast = new Multicast(port, group);
+
             CryptoUtils crypto = new CryptoUtils();
             user.setIdAuction(crypto.generateRandomId());
-            
-            FrameClientService.auctionPanel = new ClientAuctionPanel(user);
+
+            FrameClientService.auctionPanel = new ClientAuctionPanel(user, multicast);
             JFrame janela = (JFrame) SwingUtilities.getWindowAncestor(this);
             janela.getContentPane().remove(FrameClientService.TelaID);
             janela.add(FrameClientService.auctionPanel, BorderLayout.CENTER);
@@ -213,18 +222,15 @@ public class ClientMainPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_entrarBtnMouseClicked
 
-    public SecretKey decryptSymmetricKey(String encryptedKey, PrivateKey privateKey) throws Exception {
-        // Converter a chave simétrica criptografada de Base64 para bytes
+    public byte[] decryptMessageAssim(String encryptedKey, PrivateKey privateKey) throws Exception {
         byte[] encryptedKeyBytes = Base64.getDecoder().decode(encryptedKey);
 
-        // Descriptografar a chave simétrica com a chave privada do cliente
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        byte[] decryptedKey = cipher.doFinal(encryptedKeyBytes);
 
-        // Reconstruir a chave simétrica (AES) a partir dos bytes descriptografados
-        return new SecretKeySpec(decryptedKey, 0, decryptedKey.length, "AES");
+        return cipher.doFinal(encryptedKeyBytes);
     }
+
 
     private void cadastrarBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cadastrarBtnMouseClicked
         FrameClientService.registerPanel = new ClientRegisterPanel();

@@ -5,6 +5,7 @@
 package com.br.auction.sec.client;
 
 import com.br.auction.sec.entity.User;
+import com.br.auction.sec.entity.dao.Multicast;
 import com.br.auction.sec.service.AuctionMonitoring;
 import com.br.auction.sec.service.MulticastService;
 import com.google.gson.JsonObject;
@@ -25,10 +26,10 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
 
     private User user;
 
-    public ClientAuctionPanel(User user) {
+    public ClientAuctionPanel(User user, Multicast multicast) {
          initComponents();
 
-        multicastService = new MulticastService("230.0.0.0", 5000, this);
+        multicastService = new MulticastService(multicast.getGroup(), multicast.getPort(), this);
         new Thread(multicastService).start();
         monitoring = new AuctionMonitoring(multicastService);
 

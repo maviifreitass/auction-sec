@@ -6,9 +6,11 @@ import com.br.auction.sec.util.KeyUtils;
 import java.io.*;
 import java.net.*;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import org.json.JSONObject; 
 
 public class UnicastServer {
 
@@ -24,38 +26,27 @@ public class UnicastServer {
 
                 try ( BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));  PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
 
-                    String cpf = in.readLine(); // Recebe o JSON
+                    String cpf = in.readLine(); 
                     System.out.println("CPF recebido: " + cpf);
 
                     UserDB userDB = new UserDB();
 
                     String publicKeyText = userDB.findByCpfSystem(cpf);
                     SecretKey secretKeyOriginal = ServerStatic.getSecretKey();
-                    System.out.println("CHAVE SIMETRICA>>>>  " + secretKeyOriginal);
+                    System.out.println("SECRET KEY: " + secretKeyOriginal.hashCode());
+                    JSONObject sendMsg = new JSONObject(); 
 
                     PublicKey publicKey = KeyUtils.decodePublicKey(publicKeyText);
-                    String encryptedKey = encryptSymmetricKey(secretKeyOriginal, publicKey);
 
-                    /*
-                        byte[] port = CriptografiaAssimetrica.do_RSAEncryption("50002", publicKey);
-                        String encodedPort = java.util.Base64.getEncoder().encodeToString(port);
-                        sendMsg.put("Port", encodedPort);
+                    sendMsg.put("Port", encryptMessage("5000".getBytes(), publicKey));
 
-                        byte[] group = CriptografiaAssimetrica.do_RSAEncryption("230.0.0.0", publicKey);
-                        String encodedGroup = java.util.Base64.getEncoder().encodeToString(group);
-                        sendMsg.put("Group", encodedGroup);
+                    sendMsg.put("Group", encryptMessage("230.0.0.0".getBytes(), publicKey));
 
-                        //byte[] _IV = CriptografiaAssimetrica.do_RSAEncryption(IV.toString(), publicKey);
-                        String encodedIV = java.util.Base64.getEncoder().encodeToString(IV);
-                        sendMsg.put("IV", encodedIV);
+                    sendMsg.put("IV", encryptMessage(createInitializationVector(), publicKey));
 
-                        byte [] byteChave = chaveSimetrica.getEncoded();
-                        String stringChave = java.util.Base64.getEncoder().encodeToString(byteChave);
-                        byte[] Symmetrickey = CriptografiaAssimetrica.do_RSAEncryption(stringChave, publicKey);
-                        String encodedKey = java.util.Base64.getEncoder().encodeToString(Symmetrickey);
-                        sendMsg.put("Chave", encodedKey);
-                     */
-                    out.println(encryptedKey);
+                    sendMsg.put("Key", encryptMessage(secretKeyOriginal.getEncoded(), publicKey));
+
+                    out.println(sendMsg.toString());
                 }
             }
         } catch (IOException e) {
@@ -63,10 +54,22 @@ public class UnicastServer {
         }
     }
 
-    public static String encryptSymmetricKey(SecretKey secretKey, PublicKey publicKey) throws Exception {
+    public static String encryptMessage(byte[] message, PublicKey publicKey) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        byte[] encryptedKey = cipher.doFinal(secretKey.getEncoded());
-        return Base64.getEncoder().encodeToString(encryptedKey);
+        byte[] encryptedMessage = null;
+        encryptedMessage = cipher.doFinal(message);
+
+        return Base64.getEncoder().encodeToString(encryptedMessage);
+    }
+
+    public static byte[] createInitializationVector() {
+
+        byte[] initializationVector
+                = new byte[16];
+        SecureRandom secureRandom
+                = new SecureRandom();
+        secureRandom.nextBytes(initializationVector);
+        return initializationVector;
     }
 }
