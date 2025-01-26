@@ -20,6 +20,15 @@ import jakarta.persistence.Table;
 @Table(name = "items")
 public class Items implements Serializable {
 
+    public Items() {
+    }
+
+    public Items(String name, String value, String image) {
+        this.name = name;
+        this.value = value;
+        this.image = image;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

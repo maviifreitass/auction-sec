@@ -4,9 +4,12 @@
  */
 package com.br.auction.sec.server;
 
+import com.br.auction.sec.db.ItemsDB;
+import com.br.auction.sec.entity.Items;
 import com.br.auction.sec.service.FrameServerService;
 import java.awt.BorderLayout;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 /**
@@ -34,13 +37,14 @@ public class ServerRegisterPanel extends javax.swing.JPanel {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        Label1 = new javax.swing.JLabel();
+        name = new javax.swing.JLabel();
         jTextField2 = new javax.swing.JTextField();
-        Label2 = new javax.swing.JLabel();
+        price = new javax.swing.JLabel();
         jTextField3 = new javax.swing.JTextField();
-        Label3 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        image = new javax.swing.JLabel();
+        imagem = new javax.swing.JTextField();
+        registerBtn = new javax.swing.JButton();
+        voltarbtn = new javax.swing.JButton();
 
         setBackground(new java.awt.Color(255, 255, 255));
 
@@ -52,8 +56,8 @@ public class ServerRegisterPanel extends javax.swing.JPanel {
         jLabel3.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
         jLabel3.setText("Clique na opção que corresponde à ação desejada");
 
-        Label1.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
-        Label1.setText("Nome do Item");
+        name.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
+        name.setText("Nome do Item");
 
         jTextField2.setToolTipText("");
         jTextField2.addActionListener(new java.awt.event.ActionListener() {
@@ -62,13 +66,30 @@ public class ServerRegisterPanel extends javax.swing.JPanel {
             }
         });
 
-        Label2.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
-        Label2.setText("Preço do Item");
+        price.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
+        price.setText("Preço do Item");
 
-        Label3.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
-        Label3.setText("Valor Min do Lance");
+        image.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
+        image.setText("Imagem");
 
-        jButton1.setText("Cadastrar Item");
+        registerBtn.setText("Cadastrar Item");
+        registerBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                registerBtnMouseClicked(evt);
+            }
+        });
+
+        voltarbtn.setText("Voltar");
+        voltarbtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                voltarbtnMouseClicked(evt);
+            }
+        });
+        voltarbtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                voltarbtnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -76,47 +97,53 @@ public class ServerRegisterPanel extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jLabel1)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(voltarbtn)
+                .addGap(40, 40, 40))
             .addGroup(layout.createSequentialGroup()
                 .addGap(116, 116, 116)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(jLabel3)
                     .addComponent(jLabel2)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(Label3)
-                        .addComponent(Label2)
-                        .addComponent(Label1)
+                        .addComponent(image)
+                        .addComponent(price)
+                        .addComponent(name)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jTextField4, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(imagem, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jTextField3, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jTextField2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGap(75, 75, 75)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(registerBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(110, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(21, 21, 21)
+                        .addComponent(voltarbtn)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
                 .addGap(18, 18, 18)
-                .addComponent(Label1)
+                .addComponent(name)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(Label2)
+                .addComponent(price)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(Label3)
+                .addComponent(image)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(imagem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jButton1)
+                .addComponent(registerBtn)
                 .addContainerGap(41, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -125,17 +152,40 @@ public class ServerRegisterPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField2ActionPerformed
 
+    private void registerBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_registerBtnMouseClicked
+        ItemsDB itemDB = new ItemsDB();
+
+        Items item = new Items(name.getText(), price.getText(), image.getText());
+        itemDB.createItem(item);
+        JOptionPane.showMessageDialog(null, "Item cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
+
+    }//GEN-LAST:event_registerBtnMouseClicked
+
+    private void voltarbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_voltarbtnActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_voltarbtnActionPerformed
+
+    private void voltarbtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_voltarbtnMouseClicked
+        FrameServerService.TelaID = new ServerMainPanel();
+        JFrame janela = (JFrame) SwingUtilities.getWindowAncestor(this);
+        janela.getContentPane().remove(FrameServerService.configPanel);
+        janela.add(FrameServerService.TelaID, BorderLayout.CENTER);
+        janela.pack();
+    }//GEN-LAST:event_voltarbtnMouseClicked
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel Label1;
-    private javax.swing.JLabel Label2;
-    private javax.swing.JLabel Label3;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JLabel image;
+    private javax.swing.JTextField imagem;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
+    private javax.swing.JLabel name;
+    private javax.swing.JLabel price;
+    private javax.swing.JButton registerBtn;
+    private javax.swing.JButton voltarbtn;
     // End of variables declaration//GEN-END:variables
 }
