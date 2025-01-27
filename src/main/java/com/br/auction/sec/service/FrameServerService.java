@@ -8,7 +8,7 @@ public class FrameServerService extends javax.swing.JFrame {
    public static ServerMainPanel TelaID;
    public static ServerRegisterPanel configPanel;
     
-    public FrameServerService() {
+    public FrameServerService() throws Exception {
         initComponents();
         TelaID = new ServerMainPanel();
         this.setLayout(new BorderLayout());

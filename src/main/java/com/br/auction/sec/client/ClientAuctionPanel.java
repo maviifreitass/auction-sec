@@ -4,11 +4,18 @@
  */
 package com.br.auction.sec.client;
 
+import com.br.auction.sec.entity.Items;
 import com.br.auction.sec.entity.User;
 import com.br.auction.sec.entity.dao.Multicast;
+import com.br.auction.sec.server.ServerStatic;
 import com.br.auction.sec.service.AuctionMonitoring;
 import com.br.auction.sec.service.MulticastService;
+import static com.br.auction.sec.service.UnicastServer.encryptMessage;
+import com.br.auction.sec.util.CryptoUtils;
 import com.google.gson.JsonObject;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.SecretKey;
 import javax.swing.JOptionPane;
 
 /**
@@ -26,24 +33,24 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
 
     private User user;
 
-    public ClientAuctionPanel(User user, Multicast multicast) {
-         initComponents();
+    public ClientAuctionPanel(User user, Multicast multicast) throws Exception {
+        initComponents();
 
         multicastService = new MulticastService(multicast.getGroup(), multicast.getPort(), this);
         new Thread(multicastService).start();
         monitoring = new AuctionMonitoring(multicastService);
 
         if (monitoring != null) {
-            displayItems(monitoring.returnCurrentItem());
+            displayItems(monitoring.returnItem(true, new Items()));
         }
-        
+
         this.user = user;
         if (user != null) {
-            labelCurrentUser.setText("Seu ID é: "+user.getIdAuction());
+            labelCurrentUser.setText("Seu ID é: " + user.getIdAuction());
         }
     }
 
-    public ClientAuctionPanel() {
+    public ClientAuctionPanel() throws Exception {
         initComponents();
 
         multicastService = new MulticastService("230.0.0.0", 5000, this);
@@ -51,32 +58,37 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
         monitoring = new AuctionMonitoring(multicastService);
 
         if (monitoring != null) {
-            displayItems(monitoring.returnCurrentItem());
+            displayItems(monitoring.returnItem(true, new Items()));
         }
 
     }
 
-    public void displayItems(JsonObject json) {
-        itemName.setText(json.get("itemName").getAsString());
-        itemValue.setText(json.get("itemValue").getAsString());
-        itemImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/" + json.get("itemImage").getAsString())));
+    public void displayItems(JsonObject json) throws Exception {
+        SecretKey secret = user != null ? user.getSimetricKey() : ServerStatic.getSecretKey();
+        byte[] iniVetor = user != null ? user.getIniVetor() : ServerStatic.getIniVetor();
+
+        itemName.setText(CryptoUtils.decryptSim(json.get("itemName").getAsString(), secret, iniVetor));
+        itemValue.setText(CryptoUtils.decryptSim(json.get("itemValue").getAsString(), secret, iniVetor));
+        String image = (CryptoUtils.decryptSim(json.get("itemImage").getAsString(), secret, iniVetor));
+        itemImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/" + image)));
     }
 
-    public void displayMessage(JsonObject json) {
-        // decript        
-
+    public void displayMessage(JsonObject json) throws Exception {
+        SecretKey secret = user != null ? user.getSimetricKey() : ServerStatic.getSecretKey();
+        byte[] iniVetor = user != null ? user.getIniVetor() : ServerStatic.getIniVetor();
+        
         if (json.has("itemValue")) {
-            labelUser.setText("Nenhum usuário realizou lance"); 
+            labelUser.setText("Nenhum usuário realizou lance");
             displayItems(json);
         } else if (json.has("time")) {
-            timeLabel.setText("Tempo restante: " + json.get("time").getAsString() + " segundos");
+            timeLabel.setText("Tempo restante: " + CryptoUtils.decryptSim(json.get("time").getAsString(), secret, iniVetor) + " segundos");
         } else if (json.has("currentBid")) {
             Double value = Double.valueOf(itemValue.getText());
             itemValue.setText(String.valueOf(value + 1000));
             labelUser.setText(json.get("currentUser").getAsString());
         } else if (json.has("shutdown") && user != null) {
             JOptionPane.showMessageDialog(null, "Vencedor deste item: " + labelUser.getText(), "Item finalizado", JOptionPane.INFORMATION_MESSAGE);
-        }
+        } 
 
     }
 
@@ -250,8 +262,12 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
 
     private void giveBidMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_giveBidMouseClicked
         JsonObject json = new JsonObject();
-        json.addProperty("currentBid", Boolean.TRUE);
-        json.addProperty("currentUser", user.getIdAuction()); 
+        try {
+            json.addProperty("currentBid", CryptoUtils.encryptSim("true"));
+            json.addProperty("currentUser", user.getIdAuction());
+        } catch (Exception ex) {
+            Logger.getLogger(ClientAuctionPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
         // enviar nome do usuario tb
         multicastService.sendMessage(json);
     }//GEN-LAST:event_giveBidMouseClicked

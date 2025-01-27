@@ -12,6 +12,8 @@ import com.br.auction.sec.service.FrameServerService;
 import com.br.auction.sec.service.MulticastService;
 import jakarta.inject.Inject;
 import java.awt.BorderLayout;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -27,7 +29,7 @@ public class ServerMainPanel extends javax.swing.JPanel {
     private final MulticastService multicastService;
     private final AuctionMonitoring monitoring;
 
-    public ServerMainPanel() {
+    public ServerMainPanel() throws Exception {
         initComponents();
         multicastService = new MulticastService("230.0.0.0", 5000, new ClientAuctionPanel());
         new Thread(multicastService).start();
@@ -140,7 +142,11 @@ public class ServerMainPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_config_btnMouseClicked
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-        monitoring.startAuction();
+        try {
+            monitoring.startAuction();
+        } catch (Exception ex) {
+            Logger.getLogger(ServerMainPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }//GEN-LAST:event_jButton1MouseClicked
 

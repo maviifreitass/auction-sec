@@ -8,6 +8,8 @@ import com.br.auction.sec.db.ItemsDB;
 import com.br.auction.sec.entity.Items;
 import com.br.auction.sec.service.FrameServerService;
 import java.awt.BorderLayout;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -167,7 +169,11 @@ public class ServerRegisterPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_voltarbtnActionPerformed
 
     private void voltarbtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_voltarbtnMouseClicked
-        FrameServerService.TelaID = new ServerMainPanel();
+        try {
+            FrameServerService.TelaID = new ServerMainPanel();
+        } catch (Exception ex) {
+            Logger.getLogger(ServerRegisterPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
         JFrame janela = (JFrame) SwingUtilities.getWindowAncestor(this);
         janela.getContentPane().remove(FrameServerService.configPanel);
         janela.add(FrameServerService.TelaID, BorderLayout.CENTER);

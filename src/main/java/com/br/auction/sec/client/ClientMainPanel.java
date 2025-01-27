@@ -202,7 +202,9 @@ public class ClientMainPanel extends javax.swing.JPanel {
 
             String decryptedPort = new String(decryptMessageAssim(receivedMsg.get("Port").toString(), privateKey));
             String decryptedGroup = new String(decryptMessageAssim(receivedMsg.get("Group").toString(), privateKey));
-
+            byte[] iniVetor = (decryptMessageAssim(receivedMsg.get("IV").toString(), privateKey));
+            user.setIniVetor(iniVetor);
+            
             int port = Integer.parseInt(decryptedPort);
             String group = decryptedGroup;
 

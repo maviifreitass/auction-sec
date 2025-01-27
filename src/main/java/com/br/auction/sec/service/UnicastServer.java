@@ -6,7 +6,6 @@ import com.br.auction.sec.util.KeyUtils;
 import java.io.*;
 import java.net.*;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -42,7 +41,7 @@ public class UnicastServer {
 
                     sendMsg.put("Group", encryptMessage("230.0.0.0".getBytes(), publicKey));
 
-                    sendMsg.put("IV", encryptMessage(createInitializationVector(), publicKey));
+                    sendMsg.put("IV", encryptMessage(ServerStatic.getIniVetor(), publicKey));
 
                     sendMsg.put("Key", encryptMessage(secretKeyOriginal.getEncoded(), publicKey));
 
@@ -63,13 +62,4 @@ public class UnicastServer {
         return Base64.getEncoder().encodeToString(encryptedMessage);
     }
 
-    public static byte[] createInitializationVector() {
-
-        byte[] initializationVector
-                = new byte[16];
-        SecureRandom secureRandom
-                = new SecureRandom();
-        secureRandom.nextBytes(initializationVector);
-        return initializationVector;
-    }
 }

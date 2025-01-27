@@ -6,11 +6,15 @@ package com.br.auction.sec.service;
 
 import com.br.auction.sec.db.ItemsDB;
 import com.br.auction.sec.entity.Items;
+import com.br.auction.sec.util.CryptoUtils;
 import com.google.gson.JsonObject;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -31,42 +35,51 @@ public class AuctionMonitoring {
         itemsList = itemsDB.getItems();
     }
 
-    public JsonObject returnCurrentItem() {
+    public JsonObject returnItem(Boolean currentItem, Items item) throws Exception {
         JsonObject json = new JsonObject();
 
-        Items item = itemsList.get(0);
-        json.addProperty("itemValue", item.getValue());
-        json.addProperty("itemName", item.getName());
-        json.addProperty("itemImage", item.getImage());
+        if (currentItem) {
+            item = itemsList.get(0);
+        }
+        json.addProperty("itemValue", String.valueOf(CryptoUtils.encryptSim(item.getValue())));
+        json.addProperty("itemName", String.valueOf(CryptoUtils.encryptSim(item.getName())));
+        json.addProperty("itemImage", String.valueOf(CryptoUtils.encryptSim(item.getImage())));
 
         return json;
     }
 
-    public void startAuction() {
+    public void startAuction() throws Exception {
         JsonObject json = new JsonObject();
         remainingTime = 20;
         System.out.println("Iniciando scheduler.");
-        multicastService.sendMessage(returnCurrentItem());
+        multicastService.sendMessage(returnItem(true, new Items()));
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
             if (remainingTime > 0) {
                 remainingTime--;
                 System.out.println("Tempo restante: " + remainingTime + " segundos.");
-                json.addProperty("time", remainingTime.toString());
+                try {
+                    json.addProperty("time", CryptoUtils.encryptSim(remainingTime.toString()));
+                } catch (Exception ex) {
+                    Logger.getLogger(AuctionMonitoring.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 multicastService.sendMessage(json);
             } else {
-                endAuction();
+                try {
+                    endAuction();
+                } catch (Exception ex) {
+                    Logger.getLogger(AuctionMonitoring.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }, 1, 1, TimeUnit.SECONDS);
     }
 
-    public void endAuction() {
+    public void endAuction() throws Exception {
         JsonObject json = new JsonObject();
         if (scheduler != null && !scheduler.isShutdown()) {
-            json.addProperty("shutdown", Boolean.TRUE);
+            json.addProperty("shutdown", CryptoUtils.encryptSim("true"));
             multicastService.sendMessage(json);
             scheduler.shutdown();
-
         }
 
         this.itemsList.remove(0);
@@ -74,10 +87,7 @@ public class AuctionMonitoring {
         if (!itemsList.isEmpty()) {
 
             for (Items item : itemsList) {
-                json.addProperty("itemValue", item.getValue());
-                json.addProperty("itemName", item.getName());
-                json.addProperty("itemImage", item.getImage());
-                multicastService.sendMessage(json);
+                multicastService.sendMessage(returnItem(false, item));
                 startAuction();
                 break;
             }

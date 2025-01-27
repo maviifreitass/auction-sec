@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class MulticastService implements Runnable {
@@ -49,6 +51,8 @@ public class MulticastService implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (Exception ex) {
+            Logger.getLogger(MulticastService.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

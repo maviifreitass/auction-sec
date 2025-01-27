@@ -1,14 +1,14 @@
 package com.br.auction.sec.util;
 
-import java.io.File;
-import java.io.IOException;
+import com.br.auction.sec.server.ServerStatic;
 import javax.crypto.Cipher;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.util.Base64;
-import java.util.Scanner;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 public class CryptoUtils {
 
@@ -42,5 +42,48 @@ public class CryptoUtils {
         return id.toString();
     }
 
+    public static String encryptSim(
+            String plainText)
+            throws Exception {
+        Cipher cipher
+                = Cipher.getInstance(
+                        "AES/CBC/PKCS5Padding");
+
+        IvParameterSpec ivParameterSpec
+                = new IvParameterSpec(
+                        ServerStatic.getIniVetor());
+
+        cipher.init(Cipher.ENCRYPT_MODE,
+                ServerStatic.getSecretKey(),
+                ivParameterSpec);
+
+        return java.util.Base64.getEncoder().encodeToString(cipher.doFinal(
+            plainText.getBytes()));
+    }
+
+    public static String decryptSim(
+            String cipherText,
+            SecretKey secretKey,
+            byte[] initializationVector)
+            throws Exception {
+        Cipher cipher
+                = Cipher.getInstance(
+                        "AES/CBC/PKCS5Padding");
+
+        IvParameterSpec ivParameterSpec
+                = new IvParameterSpec(
+                        initializationVector);
+
+        cipher.init(
+                Cipher.DECRYPT_MODE,
+                secretKey,
+                ivParameterSpec);
+        
+        byte[] byteText = java.util.Base64.getDecoder().decode(cipherText);
+        byte[] result
+                = cipher.doFinal(byteText);
+
+        return new String(result);
+    }
 
 }

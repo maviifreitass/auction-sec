@@ -42,6 +42,9 @@ public class User implements Serializable {
     @Transient
     private SecretKey simetricKey;
 
+    @Transient
+    private byte[] iniVetor;
+
     public Long getId() {
         return id;
     }
@@ -88,6 +91,14 @@ public class User implements Serializable {
 
     public void setSimetricKey(SecretKey simetricKey) {
         this.simetricKey = simetricKey;
+    }
+
+    public byte[] getIniVetor() {
+        return iniVetor;
+    }
+
+    public void setIniVetor(byte[] iniVetor) {
+        this.iniVetor = iniVetor;
     }
 
     @Override

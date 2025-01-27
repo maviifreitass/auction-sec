@@ -154,7 +154,7 @@ public class ClientRegisterPanel extends javax.swing.JPanel {
             User user = new User();
 
             user.setCpf(cpfForm.getText());
-            KeyPair keyPair = KeyUtils.generateKeyPair();
+            KeyPair keyPair = KeyUtils.generateKeyPair(); 
 
             String publicKeyBase64 = KeyUtils.keyToBase64(keyPair.getPublic());
             String privateKeyBase64 = KeyUtils.keyToBase64(keyPair.getPrivate());
