@@ -2,16 +2,22 @@ package com.br.auction.sec.service;
 
 import com.br.auction.sec.db.UserDB;
 import com.br.auction.sec.server.ServerStatic;
+import com.br.auction.sec.util.CryptoUtils;
 import com.br.auction.sec.util.KeyUtils;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-import org.json.JSONObject; 
+import org.json.JSONObject;
 
 public class UnicastServer {
+
+    private MessageDigest messageDigest;
 
     public static void readRequest() throws Exception {
         int port = 12345;
@@ -23,29 +29,49 @@ public class UnicastServer {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Cliente conectado: " + clientSocket.getInetAddress());
 
-                try ( BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));  PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+                try (
+                         DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());  BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
 
-                    String cpf = in.readLine(); 
+                    String cpf = in.readLine();
                     System.out.println("CPF recebido: " + cpf);
 
                     UserDB userDB = new UserDB();
 
-                    String publicKeyText = userDB.findByCpfSystem(cpf);
+                    String publicKeyText = userDB.findByCpfSystem(cpf.trim());
                     SecretKey secretKeyOriginal = ServerStatic.getSecretKey();
                     System.out.println("SECRET KEY: " + secretKeyOriginal.hashCode());
-                    JSONObject sendMsg = new JSONObject(); 
-
+                    JSONObject sendMsg = new JSONObject();
+                    System.out.println(publicKeyText);
                     PublicKey publicKey = KeyUtils.decodePublicKey(publicKeyText);
 
-                    sendMsg.put("Port", encryptMessage("5000".getBytes(), publicKey));
+                    sendMsg.put("Port", "5000");
 
-                    sendMsg.put("Group", encryptMessage("230.0.0.0".getBytes(), publicKey));
+                    sendMsg.put("Group", "230.0.0.0");
 
-                    sendMsg.put("IV", encryptMessage(ServerStatic.getIniVetor(), publicKey));
+                    byte[] iniVetor = ServerStatic.getIniVetor();
+                    String iniVetorString = Base64.getEncoder().encodeToString(iniVetor);
+                    System.out.println( Arrays.toString(iniVetor));
+                    sendMsg.put("IV", iniVetorString);
 
-                    sendMsg.put("Key", encryptMessage(secretKeyOriginal.getEncoded(), publicKey));
+                    byte[] encodedKey = secretKeyOriginal.getEncoded();
+                    String symmetricKeyString = Base64.getEncoder().encodeToString(encodedKey);
+                    sendMsg.put("Key", symmetricKeyString);
 
-                    out.println(sendMsg.toString());
+                    String encryptedMessage = encryptMessage(sendMsg.toString().getBytes(), publicKey);
+
+                    System.out.println(encryptedMessage);
+                    byte[] encryptedBytes = encryptedMessage.getBytes(StandardCharsets.UTF_8);
+
+                    byte[] hashBytes = CryptoUtils.calculateHash(sendMsg.toString());
+                    byte[] encryptedHashBytes = CryptoUtils.signHash(hashBytes);
+
+                    out.writeInt(encryptedBytes.length);
+                    out.write(encryptedBytes);
+
+                    out.writeInt(encryptedHashBytes.length);
+                    out.write(encryptedHashBytes);
+
+                    out.flush();
                 }
             }
         } catch (IOException e) {

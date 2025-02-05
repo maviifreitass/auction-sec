@@ -13,6 +13,7 @@ import com.br.auction.sec.service.MulticastService;
 import static com.br.auction.sec.service.UnicastServer.encryptMessage;
 import com.br.auction.sec.util.CryptoUtils;
 import com.google.gson.JsonObject;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.SecretKey;
@@ -76,7 +77,10 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
     public void displayMessage(JsonObject json) throws Exception {
         SecretKey secret = user != null ? user.getSimetricKey() : ServerStatic.getSecretKey();
         byte[] iniVetor = user != null ? user.getIniVetor() : ServerStatic.getIniVetor();
-        
+
+        System.out.println("SECRET KEY: " + secret.hashCode());
+        System.out.println(Arrays.toString(iniVetor));
+
         if (json.has("itemValue")) {
             labelUser.setText("Nenhum usuário realizou lance");
             displayItems(json);
@@ -88,7 +92,7 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
             labelUser.setText(json.get("currentUser").getAsString());
         } else if (json.has("shutdown") && user != null) {
             JOptionPane.showMessageDialog(null, "Vencedor deste item: " + labelUser.getText(), "Item finalizado", JOptionPane.INFORMATION_MESSAGE);
-        } 
+        }
 
     }
 

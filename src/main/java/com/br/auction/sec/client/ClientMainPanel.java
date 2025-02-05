@@ -12,11 +12,17 @@ import com.br.auction.sec.service.UnicastClient;
 import com.br.auction.sec.util.CryptoUtils;
 import com.br.auction.sec.util.KeyUtils;
 import java.awt.BorderLayout;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFrame;
@@ -191,20 +197,23 @@ public class ClientMainPanel extends javax.swing.JPanel {
             User user = new User();
             user = userDB.findByCpf(cpfLabel.getText(), Boolean.FALSE);
 
-            String encryptedKey = UnicastClient.sendRequest(cpfLabel.getText());
+            String encryptedKey = UnicastClient.sendRequest(user);
+
             JSONObject receivedMsg = new JSONObject(encryptedKey);
 
-            PrivateKey privateKey = KeyUtils.decodePrivateKey(user.getPrivateKey());
-            byte[] decodedKey = decryptMessageAssim(receivedMsg.get("Key").toString(), privateKey);
-            SecretKey secretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+            System.out.println(receivedMsg.toString());
+
+            byte[] decodedKey = Base64.getDecoder().decode(receivedMsg.get("Key").toString());
+            SecretKey secretKey = new SecretKeySpec(decodedKey, "AES");
             user.setSimetricKey(secretKey);
             System.out.println("SECRET KEY: " + secretKey.hashCode());
 
-            String decryptedPort = new String(decryptMessageAssim(receivedMsg.get("Port").toString(), privateKey));
-            String decryptedGroup = new String(decryptMessageAssim(receivedMsg.get("Group").toString(), privateKey));
-            byte[] iniVetor = (decryptMessageAssim(receivedMsg.get("IV").toString(), privateKey));
+            String decryptedPort = receivedMsg.get("Port").toString();
+            String decryptedGroup = receivedMsg.get("Group").toString();
+            byte[] iniVetor = Base64.getDecoder().decode(receivedMsg.get("IV").toString());
+             System.out.println( Arrays.toString(iniVetor));
             user.setIniVetor(iniVetor);
-            
+
             int port = Integer.parseInt(decryptedPort);
             String group = decryptedGroup;
 
@@ -224,13 +233,20 @@ public class ClientMainPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_entrarBtnMouseClicked
 
-    public byte[] decryptMessageAssim(String encryptedKey, PrivateKey privateKey) throws Exception {
-        byte[] encryptedKeyBytes = Base64.getDecoder().decode(encryptedKey);
+    public String decryptAssim(String encryptedMessage, PrivateKey privateKey) {
+        try {
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedMessage));
 
-        return cipher.doFinal(encryptedKeyBytes);
+            return new String(decryptedBytes);
+        } catch (IllegalBlockSizeException | BadPaddingException
+                | NoSuchAlgorithmException | NoSuchPaddingException
+                | InvalidKeyException ex) {
+            Logger.getLogger(ClientMainPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
 

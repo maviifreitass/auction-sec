@@ -109,7 +109,7 @@ public class UserDB implements Serializable {
 
     public String findByCpfSystem(String cpf) {
         String sql = "SELECT public_key FROM users where cpf = '" + cpf + "' ";
-
+        System.out.println(sql);
         PostgresWrapper pw = new PostgresWrapper();
         pw.openPostgresConnection();
 

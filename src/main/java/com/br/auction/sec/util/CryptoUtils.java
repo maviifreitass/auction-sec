@@ -1,31 +1,24 @@
 package com.br.auction.sec.util;
 
 import com.br.auction.sec.server.ServerStatic;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import javax.crypto.Cipher;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
-import java.util.Base64;
+import java.security.SignatureException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 public class CryptoUtils {
 
-    public static String encryptWithPublicKey(String message, PublicKey publicKey) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        byte[] encryptedBytes = cipher.doFinal(message.getBytes());
-        return Base64.getEncoder().encodeToString(encryptedBytes);
-    }
-
-    public static String signMessage(String message, PrivateKey privateKey) throws Exception {
-        Signature signature = Signature.getInstance("SHA256withRSA");
-        signature.initSign(privateKey);
-        signature.update(message.getBytes());
-        byte[] signedBytes = signature.sign();
-        return Base64.getEncoder().encodeToString(signedBytes);
-    }
+    private static MessageDigest md;
 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final int ID_LENGTH = 12;
@@ -58,7 +51,7 @@ public class CryptoUtils {
                 ivParameterSpec);
 
         return java.util.Base64.getEncoder().encodeToString(cipher.doFinal(
-            plainText.getBytes()));
+                plainText.getBytes()));
     }
 
     public static String decryptSim(
@@ -73,17 +66,50 @@ public class CryptoUtils {
         IvParameterSpec ivParameterSpec
                 = new IvParameterSpec(
                         initializationVector);
+        
+        System.out.println(cipherText);
+        
 
         cipher.init(
                 Cipher.DECRYPT_MODE,
                 secretKey,
                 ivParameterSpec);
-        
+
         byte[] byteText = java.util.Base64.getDecoder().decode(cipherText);
         byte[] result
                 = cipher.doFinal(byteText);
 
         return new String(result);
+    }
+
+    public static byte[] calculateHash(String message) throws NoSuchAlgorithmException {
+        md = MessageDigest.getInstance("SHA-256");
+        byte[] hashBytes = md.digest(message.getBytes(StandardCharsets.UTF_8));
+        return hashBytes;
+    }
+
+    public static byte[] signHash(byte[] hashBytes) {
+        try {
+            PrivateKey serverPk = ServerStatic.getPrivateKey();
+            Signature signature = Signature.getInstance("SHA256withRSA");
+            signature.initSign(serverPk);
+            signature.update(hashBytes);
+            return signature.sign();
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            Logger.getLogger(CryptoUtils.class.getName()).log(Level.SEVERE, null, e);
+        }
+        return null;
+    }
+
+    public static boolean checkDecrypt(String decryptedMessage, byte[] hashEncrypted, PublicKey publicKey) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        md = MessageDigest.getInstance("SHA-256");
+        byte[] messageHash = md.digest(decryptedMessage.getBytes(StandardCharsets.UTF_8));
+
+        Signature signature = Signature.getInstance("SHA256withRSA");
+        signature.initVerify(publicKey);
+        signature.update(messageHash);
+        return signature.verify(hashEncrypted);
+
     }
 
 }
