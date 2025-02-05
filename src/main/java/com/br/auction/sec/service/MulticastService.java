@@ -45,9 +45,8 @@ public class MulticastService implements Runnable {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 String receivedMessage = new String(packet.getData(), 0, packet.getLength());
-                
-                JsonObject jsonObject = JsonParser.parseString(receivedMessage).getAsJsonObject();
-                panel.displayMessage(jsonObject);
+
+                panel.displayMessage(receivedMessage);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -56,15 +55,14 @@ public class MulticastService implements Runnable {
         }
     }
 
-    public void sendMessage(JsonObject json) {
-        try {            
-            byte[] buffer = json.toString().getBytes();
+    public void sendMessage(String json) {
+        try {
+            byte[] buffer = json.getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, group, port);
             socket.send(packet);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
 }

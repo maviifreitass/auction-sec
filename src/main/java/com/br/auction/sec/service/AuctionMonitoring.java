@@ -34,17 +34,17 @@ public class AuctionMonitoring {
         itemsList = itemsDB.getItems();
     }
 
-    public JsonObject returnItem(Boolean currentItem, Items item) throws Exception {
+    public String returnItem(Boolean currentItem, Items item) throws Exception {
         JsonObject json = new JsonObject();
 
         if (currentItem) {
             item = itemsList.get(0);
         }
-        json.addProperty("itemValue", String.valueOf(CryptoUtils.encryptSim(item.getValue())));
-        json.addProperty("itemName", String.valueOf(CryptoUtils.encryptSim(item.getName())));
-        json.addProperty("itemImage", String.valueOf(CryptoUtils.encryptSim(item.getImage())));
+        json.addProperty("itemValue", String.valueOf((item.getValue())));
+        json.addProperty("itemName", String.valueOf((item.getName())));
+        json.addProperty("itemImage", String.valueOf((item.getImage())));
 
-        return json;
+        return CryptoUtils.encryptSim(json.toString(), null);
     }
 
     public void startAuction() throws Exception {
@@ -55,14 +55,18 @@ public class AuctionMonitoring {
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
             if (remainingTime > 0) {
-                remainingTime--;
-                System.out.println("Tempo restante: " + remainingTime + " segundos.");
                 try {
-                    json.addProperty("time", CryptoUtils.encryptSim(remainingTime.toString()));
+                    remainingTime--;
+                    System.out.println("Tempo restante: " + remainingTime + " segundos.");
+                    try {
+                        json.addProperty("time", CryptoUtils.encryptSim(remainingTime.toString(), null));
+                    } catch (Exception ex) {
+                        Logger.getLogger(AuctionMonitoring.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    multicastService.sendMessage(CryptoUtils.encryptSim(json.toString(), null));
                 } catch (Exception ex) {
                     Logger.getLogger(AuctionMonitoring.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                multicastService.sendMessage(json);
             } else {
                 try {
                     endAuction();
@@ -76,8 +80,8 @@ public class AuctionMonitoring {
     public void endAuction() throws Exception {
         JsonObject json = new JsonObject();
         if (scheduler != null && !scheduler.isShutdown()) {
-            json.addProperty("shutdown", CryptoUtils.encryptSim("true"));
-            multicastService.sendMessage(json);
+            json.addProperty("shutdown", ("true"));
+            multicastService.sendMessage(CryptoUtils.encryptSim(json.toString(), null)); 
             scheduler.shutdown();
         }
 

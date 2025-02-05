@@ -1,5 +1,6 @@
 package com.br.auction.sec.util;
 
+import com.br.auction.sec.entity.User;
 import com.br.auction.sec.server.ServerStatic;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -36,18 +37,20 @@ public class CryptoUtils {
     }
 
     public static String encryptSim(
-            String plainText)
+            String plainText, User user)
             throws Exception {
+        SecretKey secret = user != null ? user.getSimetricKey() : ServerStatic.getSecretKey();
+        byte[] iniVetor = user != null ? user.getIniVetor() : ServerStatic.getIniVetor();
         Cipher cipher
                 = Cipher.getInstance(
                         "AES/CBC/PKCS5Padding");
 
         IvParameterSpec ivParameterSpec
                 = new IvParameterSpec(
-                        ServerStatic.getIniVetor());
+                        iniVetor);
 
         cipher.init(Cipher.ENCRYPT_MODE,
-                ServerStatic.getSecretKey(),
+                secret,
                 ivParameterSpec);
 
         return java.util.Base64.getEncoder().encodeToString(cipher.doFinal(
@@ -66,9 +69,8 @@ public class CryptoUtils {
         IvParameterSpec ivParameterSpec
                 = new IvParameterSpec(
                         initializationVector);
-        
+
         System.out.println(cipherText);
-        
 
         cipher.init(
                 Cipher.DECRYPT_MODE,

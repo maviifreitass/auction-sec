@@ -10,7 +10,6 @@ import com.br.auction.sec.entity.dao.Multicast;
 import com.br.auction.sec.service.FrameClientService;
 import com.br.auction.sec.service.UnicastClient;
 import com.br.auction.sec.util.CryptoUtils;
-import com.br.auction.sec.util.KeyUtils;
 import java.awt.BorderLayout;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;

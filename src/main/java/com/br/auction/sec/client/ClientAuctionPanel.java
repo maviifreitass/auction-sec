@@ -10,7 +10,6 @@ import com.br.auction.sec.entity.dao.Multicast;
 import com.br.auction.sec.server.ServerStatic;
 import com.br.auction.sec.service.AuctionMonitoring;
 import com.br.auction.sec.service.MulticastService;
-import static com.br.auction.sec.service.UnicastServer.encryptMessage;
 import com.br.auction.sec.util.CryptoUtils;
 import com.google.gson.JsonObject;
 import java.util.Arrays;
@@ -18,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.SecretKey;
 import javax.swing.JOptionPane;
+import org.json.JSONObject;
 
 /**
  *
@@ -64,32 +64,38 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
 
     }
 
-    public void displayItems(JsonObject json) throws Exception {
+    public void displayItems(String encrypted) throws Exception {
         SecretKey secret = user != null ? user.getSimetricKey() : ServerStatic.getSecretKey();
         byte[] iniVetor = user != null ? user.getIniVetor() : ServerStatic.getIniVetor();
 
-        itemName.setText(CryptoUtils.decryptSim(json.get("itemName").getAsString(), secret, iniVetor));
-        itemValue.setText(CryptoUtils.decryptSim(json.get("itemValue").getAsString(), secret, iniVetor));
-        String image = (CryptoUtils.decryptSim(json.get("itemImage").getAsString(), secret, iniVetor));
+        JSONObject json = new JSONObject((CryptoUtils.decryptSim(encrypted, secret, iniVetor)));
+        itemName.setText(json.get("itemName").toString());
+        itemValue.setText(json.get("itemValue").toString());
+        String image = (json.get("itemImage").toString());
         itemImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/" + image)));
     }
 
-    public void displayMessage(JsonObject json) throws Exception {
+    public void displayMessage(String encrypted) throws Exception {
         SecretKey secret = user != null ? user.getSimetricKey() : ServerStatic.getSecretKey();
         byte[] iniVetor = user != null ? user.getIniVetor() : ServerStatic.getIniVetor();
 
         System.out.println("SECRET KEY: " + secret.hashCode());
         System.out.println(Arrays.toString(iniVetor));
 
+        JSONObject json = new JSONObject((CryptoUtils.decryptSim(encrypted, secret, iniVetor)));
+        System.out.println("JSON DECRIPTOGRAFADO: " + json);
         if (json.has("itemValue")) {
             labelUser.setText("Nenhum usuário realizou lance");
-            displayItems(json);
+            itemName.setText(json.get("itemName").toString());
+            itemValue.setText(json.get("itemValue").toString());
+            String image = (json.get("itemImage").toString());
+            itemImage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/" + image)));
         } else if (json.has("time")) {
-            timeLabel.setText("Tempo restante: " + CryptoUtils.decryptSim(json.get("time").getAsString(), secret, iniVetor) + " segundos");
+            timeLabel.setText("Tempo restante: " + CryptoUtils.decryptSim(json.get("time").toString(), secret, iniVetor) + " segundos");
         } else if (json.has("currentBid")) {
             Double value = Double.valueOf(itemValue.getText());
             itemValue.setText(String.valueOf(value + 1000));
-            labelUser.setText(json.get("currentUser").getAsString());
+            labelUser.setText(json.get("currentUser").toString());
         } else if (json.has("shutdown") && user != null) {
             JOptionPane.showMessageDialog(null, "Vencedor deste item: " + labelUser.getText(), "Item finalizado", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -265,15 +271,20 @@ public class ClientAuctionPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void giveBidMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_giveBidMouseClicked
-        JsonObject json = new JsonObject();
+        JSONObject json = new JSONObject();
         try {
-            json.addProperty("currentBid", CryptoUtils.encryptSim("true"));
-            json.addProperty("currentUser", user.getIdAuction());
+            json.put("currentBid", ("true"));
+            json.put("currentUser", user.getIdAuction());
+            System.out.println("JSON DAR LANCE: " + json.toString());
         } catch (Exception ex) {
             Logger.getLogger(ClientAuctionPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-        // enviar nome do usuario tb
-        multicastService.sendMessage(json);
+        try {
+            // enviar nome do usuario tb
+            multicastService.sendMessage(CryptoUtils.encryptSim(json.toString(), user));
+        } catch (Exception ex) {
+            Logger.getLogger(ClientAuctionPanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_giveBidMouseClicked
 
 
